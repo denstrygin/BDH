@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dwh
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - dwh_network
+
+  spark:
+    build:
+      context: .  # Указывает на директорию с Dockerfile
+    container_name: spark
+    ports:
+      - "8888:8888"
+    environment:
+      - SPARK_DRIVER_MEMORY=2G
+      - SPARK_EXECUTOR_MEMORY=4G
+    networks:
+      - dwh_network
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    command:
+      - start-notebook.sh
+
+volumes:
+  postgres_data:
+
+networks:
+  dwh_network:
+    driver: bridge
